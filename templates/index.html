@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2> Rhyme Detect </h2>
+
+<form action = "/" method = "POST">
+<h3>入力フォーム</h3>
+<p><textarea name="input_text" rows="10" cols="50" minlength="3" maxlength="1000"　required  placeholder="入力フォーム"></textarea></p>
+<p><input class="button" type="submit" value="detect"></p>
+<p>{{ value | safe}}</p>
+</form>
+{% endblock %}
+
