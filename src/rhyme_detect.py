@@ -8,7 +8,8 @@ def get_sample():
     return "rhyme<br>detect"
 
 def parse_sentence(sentence):
-    m = MeCab.Tagger()
+    m = MeCab.Tagger("-d /usr/local/lib/mecab/dic/mecab-ipadic-neologd/")
+    #m = MeCab.Tagger()
     return m.parse(sentence).split("\n")
 
 def remove_escape_word(sentence_list):
@@ -44,11 +45,10 @@ def kana_to_vowel(kana_sentence, lower_kana_list, kana_to_vowel_dict):
     vowel_to_kana_point_list = []
     is_vowel_word_top_list = []
     kana_length = 0
-    print(kana_sentence)
     for word in kana_sentence:
         vowel_word = ""
+        vowel_length = 0
         for (i, char) in enumerate(list(word)):
-            print(char)
             if char in lower_kana_list:
                 vowel_word = vowel_word[:-1] + kana_to_vowel_dict[char]
                 vowel_to_kana_point_list[-1][1] = kana_length + i
@@ -61,7 +61,9 @@ def kana_to_vowel(kana_sentence, lower_kana_list, kana_to_vowel_dict):
             else:
                 vowel_word += kana_to_vowel_dict[char]
                 vowel_to_kana_point_list.append([kana_length+i, kana_length+i])
-            is_vowel_word_top_list.append(True if i == 0 else False)
+                is_vowel_word_top_list.append(True if vowel_length == 0 else False)
+                vowel_length += 1
+                #is_vowel_word_top_list.append(True if vowel_length == 0 else False)
         vowel_sentence.append(vowel_word)
         kana_length += len(word)
     return vowel_sentence, vowel_to_kana_point_list, is_vowel_word_top_list
@@ -90,10 +92,11 @@ def search_n_gram(sentence, is_kana_top_list, n_gram=2, tolerance=0):
     for vowels in set(n_gram_elements):
         candidate = get_duplicated_index(vowels, n_gram_elements)
         if len(candidate) >= 2:
+            candidate_len_without_word_top = len(candidate)
             for (i, vowel_index) in enumerate(candidate):
                 if not is_kana_top_list[vowel_index]:
-                    candidate.pop(i)
-            if len(candidate) >= 2:
+                    candidate_len_without_word_top -= 1
+            if candidate_len_without_word_top >= 1:
                 vowels_index_dict[vowels] = candidate
     return vowels_index_dict
 
@@ -141,7 +144,8 @@ def rhyme_detect(input_text):
     vowel_sentence = ""
     for vowel in vowel_sentence_list:
         vowel_sentence += vowel
-    output = ""
+    output = "{}<br>{}<br>".format(kana_sentence_list, vowel_sentence_list)
+    #output = ""
     for i in range(10):
         n_gram = i + 3
         rhyme_dict = search_n_gram(vowel_sentence, is_vowel_word_top_list, n_gram=n_gram)
@@ -154,7 +158,7 @@ def rhyme_detect(input_text):
                     sentence_list[begin_point] = '<span style="color:red">{}'.format(sentence_list[begin_point])
                     sentence_list[end_point] = '{}</span>'.format(sentence_list[end_point])
                 output += "{}<br>".format("".join(sentence_list))
-                output += "{}<br>".format(get_origin_word(origin_sentence_list, kana_sentence, kana_to_origin_point_list, vowel_to_kana_point_list, vowel_point, n_gram=n_gram))
+                #output += "{}<br>".format(get_origin_word(origin_sentence_list, kana_sentence, kana_to_origin_point_list, vowel_to_kana_point_list, vowel_point, n_gram=n_gram))
     return output
 
 
